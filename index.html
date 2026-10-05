@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal Hasil Ujian Siswa (Multi-Sekolah)</title>
+    <!-- Font, Icons, SheetJS & Supabase SDK -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
@@ -22,37 +22,56 @@
         }
         .admin-btn {
             position: absolute; top: 20px; right: 20px; background: #f0f9ff; border: 1px solid #bae6fd;
-            color: #0284c7; padding: 9px 16px; border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 600;
+            color: #0284c7; padding: 10px 18px; border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: 700;
+            display: flex; align-items: center; gap: 8px; transition: all 0.2s ease; z-index: 10;
         }
-        .admin-btn:hover { background: #0284c7; color: #ffffff; }
-        .header { text-align: center; margin-bottom: 32px; }
+        .admin-btn:hover { background: #0284c7; color: #ffffff; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2); }
+        .header { text-align: center; margin-bottom: 32px; margin-top: 10px; }
         .school-title { font-size: 24px; font-weight: 800; color: #0f172a; }
-        .portal-title { font-size: 16px; font-weight: 600; color: #0284c7; }
+        .portal-title { font-size: 16px; font-weight: 600; color: #0284c7; margin-top: 4px; }
         .search-box { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; }
         input[type="text"], input[type="password"] {
             width: 100%; padding: 14px 18px; border-radius: 14px; border: 1.5px solid #cbd5e1;
-            background: #f8fafc; font-size: 15px; outline: none;
+            background: #f8fafc; font-size: 15px; outline: none; transition: all 0.2s;
         }
         input:focus { border-color: #0284c7; background: #fff; box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.15); }
         .btn-primary {
             padding: 14px; border-radius: 14px; border: none; background: linear-gradient(135deg, #0284c7, #0369a1);
             color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: all 0.2s;
         }
-        .error-msg { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 14px; border-radius: 12px; display: none; text-align: center; margin-bottom: 20px; }
+        .btn-primary:hover { opacity: 0.95; transform: translateY(-1px); }
+        .error-msg { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 14px; border-radius: 12px; display: none; text-align: center; margin-bottom: 20px; font-size: 14px; }
         .result-card { display: none; }
         .student-info { background: #f0f9ff; padding: 18px; border-radius: 16px; margin-bottom: 20px; border-left: 5px solid #0284c7; }
+        .student-info div { margin-bottom: 4px; }
         .scores-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
-        .score-item { background: #f8fafc; padding: 12px 16px; border-radius: 12px; display: flex; justify-content: space-between; border: 1px solid #e2e8f0; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.5); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
-        .modal-content { background: #fff; border-radius: 20px; padding: 30px; width: 100%; max-width: 480px; }
+        .score-item { background: #f8fafc; padding: 12px 16px; border-radius: 12px; display: flex; justify-content: space-between; border: 1px solid #e2e8f0; font-size: 14px; }
+
+        /* Style Modal Window */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px);
+            justify-content: center; align-items: center; z-index: 1000; padding: 20px;
+        }
+        .modal-content { background: #fff; border-radius: 20px; padding: 30px; width: 100%; max-width: 480px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .modal-header h3 { font-size: 18px; color: #0f172a; display: flex; align-items: center; gap: 8px; }
+        .close-btn { background: #f1f5f9; border: none; font-size: 20px; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; color: #64748b; }
         .form-group { margin-bottom: 16px; }
         .form-group label { font-size: 13px; font-weight: 600; color: #334155; display: block; margin-bottom: 6px; }
+
+        @media(max-width: 480px) {
+            .scores-grid { grid-template-columns: 1fr; }
+            .container { padding: 25px 20px; }
+            .admin-btn { position: relative; top: 0; right: 0; width: 100%; justify-content: center; margin-bottom: 15px; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <button class="admin-btn" onclick="openAuthModal()"><i class="fa-solid fa-lock"></i> Panel Guru</button>
+    <button class="admin-btn" type="button" onclick="openAuthModal()"><i class="fa-solid fa-lock"></i> Panel Guru</button>
 
     <div class="header">
         <i class="fa-solid fa-school" style="font-size: 48px; color: #0284c7; margin-bottom: 10px;"></i>
@@ -63,8 +82,8 @@
 
     <div class="search-box">
         <input type="text" id="schoolCodeInput" placeholder="Masukkan Kode Sekolah (contoh: SDN05)">
-        <input type="text" id="nisnInput" placeholder="Masukkan NISN Siswa (contoh: 0123456789)">
-        <button class="btn-primary" onclick="cariNilaiOnline()"><i class="fa-solid fa-magnifying-glass"></i> Cari Nilai</button>
+        <input type="text" id="nisnInput" placeholder="Masukkan NISN Siswa (contoh: 0123456789)" onkeypress="if(event.key==='Enter') cariNilaiOnline()">
+        <button class="btn-primary" type="button" onclick="cariNilaiOnline()"><i class="fa-solid fa-magnifying-glass"></i> Cari Nilai</button>
     </div>
 
     <div id="errorMsg" class="error-msg"></div>
@@ -79,47 +98,176 @@
     </div>
 </div>
 
-<!-- Modal Auth Guru -->
+<!-- Modal Auth / Login Guru -->
 <div class="modal" id="authModal">
     <div class="modal-content">
-        <h3><i class="fa-solid fa-shield-halved"></i> Akses Panel Guru</h3>
-        <p style="font-size: 13px; color: #64748b; margin: 10px 0;">Masukkan Kode Sekolah & Password Anda</p>
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-shield-halved" style="color:#0284c7;"></i> Akses Panel Guru</h3>
+            <button class="close-btn" type="button" onclick="closeModal('authModal')">&times;</button>
+        </div>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 16px;">Masukkan Kode Sekolah & Password Anda</p>
         <div class="form-group">
             <label>Kode Sekolah</label>
             <input type="text" id="authSchoolCode" placeholder="Contoh: SDN05">
         </div>
         <div class="form-group">
-            <label>Password</label>
-            <input type="password" id="authPassword" placeholder="Masukkan Password">
+            <label>Password Guru</label>
+            <input type="password" id="authPassword" placeholder="Masukkan Password" onkeypress="if(event.key==='Enter') loginGuru()">
         </div>
-        <div id="authError" style="color:red; font-size:12px; margin-bottom:10px; display:none;"></div>
-        <button class="btn-primary" style="width:100%" onclick="loginGuru()">Masuk</button>
-        <button style="width:100%; margin-top:8px; padding:10px; border:none; background:#f1f5f9; border-radius:10px; cursor:pointer;" onclick="closeModal('authModal')">Batal</button>
+        <div id="authError" style="color:#dc2626; font-size:13px; margin-bottom:12px; display:none;"></div>
+        <button class="btn-primary" type="button" style="width:100%" onclick="loginGuru()">Masuk / Buat Akun</button>
     </div>
 </div>
 
-<!-- Modal Panel Admin Guru -->
+<!-- Modal Panel Pengaturan Guru -->
 <div class="modal" id="adminModal">
     <div class="modal-content">
-        <h3><i class="fa-solid fa-sliders"></i> Panel Pengaturan Guru</h3>
-        <p style="font-size: 12px; color: #0284c7; font-weight:700; margin-bottom:15px;" id="activeSchoolInfo"></p>
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-sliders" style="color:#0284c7;"></i> Panel Pengaturan Guru</h3>
+            <button class="close-btn" type="button" onclick="closeModal('adminModal')">&times;</button>
+        </div>
+        <p style="font-size: 13px; color: #0284c7; font-weight:700; margin-bottom:15px;" id="activeSchoolInfo"></p>
 
         <div class="form-group">
-            <label>Upload File Excel Data Nilai (.xlsx)</label>
-            <input type="file" id="inputExcelFile" accept=".xlsx, .xls">
+            <label>Upload File Excel Data Nilai (.xlsx / .xls)</label>
+            <input type="file" id="inputExcelFile" accept=".xlsx, .xls" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:10px;">
         </div>
-        <button class="btn-primary" style="width:100%" onclick="uploadExcelToCloud()">Upload & Sync ke Cloud</button>
-        <button style="width:100%; margin-top:8px; padding:10px; border:none; background:#f1f5f9; border-radius:10px; cursor:pointer;" onclick="closeModal('adminModal')">Tutup</button>
+        <button class="btn-primary" type="button" style="width:100%" onclick="uploadExcelToCloud()">Upload & Sync ke Cloud</button>
     </div>
 </div>
 
 <script>
-    // === KONFIGURASI SUPABASE (Ganti dengan Key Supabase Anda) ===
-    const SUPABASE_URL = https://amuvpxnhiqwzcggnbuau.supabase.co/rest/v1/;
-    const SUPABASE_KEY = sb_publishable_NyoX8xKg-nAztYPeVBbihg_GxMEadgv;
-    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // === KONFIGURASI SUPABASE ===
+    // Pastikan ganti nilai di bawah ini dengan kredensial Supabase milik Anda!
+    const SUPABASE_URL = "https://YOUR_SUPABASE_URL.supabase.co";
+    const SUPABASE_KEY = "YOUR_SUPABASE_ANON_KEY";
 
+    let db = null;
     let activeSchool = "";
+
+    // Inisialisasi Supabase secara aman
+    try {
+        if (typeof supabase !== 'undefined' && SUPABASE_URL !== "https://YOUR_SUPABASE_URL.supabase.co") {
+            db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        }
+    } catch (e) {
+        console.warn("Supabase belum dikonfigurasi dengan benar.");
+    }
+
+    // Modal Control Functions
+    function openAuthModal() {
+        document.getElementById('authError').style.display = 'none';
+        document.getElementById('authModal').style.display = 'flex';
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+
+    // Login Guru
+    async function loginGuru() {
+        const code = document.getElementById('authSchoolCode').value.trim().toUpperCase();
+        const pass = document.getElementById('authPassword').value.trim();
+        const err = document.getElementById('authError');
+
+        if (!code || !pass) { 
+            err.innerText = "Harap isi Kode Sekolah dan Password!"; 
+            err.style.display = 'block'; 
+            return; 
+        }
+
+        if (!db) {
+            err.innerText = "Supabase belum dihubungkan! Harap masukkan SUPABASE_URL & SUPABASE_KEY terlebih dahulu di kode HTML.";
+            err.style.display = 'block';
+            return;
+        }
+
+        try {
+            let { data: school, error } = await db.from('sekolah').select('*').eq('kode_sekolah', code).maybeSingle();
+
+            if (error) throw error;
+
+            if (!school) {
+                // Registrasi sekolah baru
+                const { error: insertErr } = await db.from('sekolah').insert([{ kode_sekolah: code, password: pass }]);
+                if (insertErr) throw insertErr;
+                activeSchool = code;
+                openAdminPanel();
+            } else if (school.password === pass) {
+                activeSchool = code;
+                openAdminPanel();
+            } else {
+                err.innerText = "Password Salah!";
+                err.style.display = 'block';
+            }
+        } catch (e) {
+            err.innerText = "Gagal terhubung ke database: " + e.message;
+            err.style.display = 'block';
+        }
+    }
+
+    function openAdminPanel() {
+        closeModal('authModal');
+        document.getElementById('activeSchoolInfo').innerText = "Sekolah Terhubung: " + activeSchool;
+        document.getElementById('adminModal').style.display = 'flex';
+    }
+
+    // Sync Excel ke Supabase
+    async function uploadExcelToCloud() {
+        const fileInput = document.getElementById('inputExcelFile');
+        const file = fileInput.files[0];
+
+        if (!file) { alert("Pilih file Excel terlebih dahulu!"); return; }
+        if (!db) { alert("Supabase belum dikonfigurasi!"); return; }
+
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+
+                if (jsonData.length === 0) {
+                    alert("File Excel kosong!");
+                    return;
+                }
+
+                // Hapus data lama sekolah ini
+                await db.from('nilai_siswa').delete().eq('kode_sekolah', activeSchool);
+
+                // Format data baru
+                const rows = jsonData.map(row => {
+                    const nisn = String(row['NISN'] || row['nisn'] || '').trim();
+                    const nama = row['NAMA SISWA'] || row['nama'] || row['Nama'] || '-';
+                    
+                    let copyRow = { ...row };
+                    delete copyRow['NISN']; 
+                    delete copyRow['nisn'];
+                    delete copyRow['NAMA SISWA'];
+                    delete copyRow['nama'];
+
+                    return {
+                        kode_sekolah: activeSchool,
+                        nisn: nisn,
+                        nama_siswa: nama,
+                        nilai: copyRow
+                    };
+                });
+
+                const { error } = await db.from('nilai_siswa').insert(rows);
+                if (!error) {
+                    alert("Berhasil! " + rows.length + " data nilai berhasil tersimpan ke Cloud.");
+                    fileInput.value = '';
+                    closeModal('adminModal');
+                } else {
+                    throw error;
+                }
+            } catch (err) {
+                alert("Gagal mengunggah data: " + err.message);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
 
     // Function Cari Nilai Siswa
     async function cariNilaiOnline() {
@@ -134,111 +282,49 @@
             return;
         }
 
-        // Ambil Data dari Supabase Cloud
-        const { data, error } = await db
-            .from('nilai_siswa')
-            .select('*')
-            .eq('kode_sekolah', schoolCode)
-            .eq('nisn', nisn)
-            .single();
-
-        if (error || !data) {
-            errorMsg.innerText = "Data tidak ditemukan. Periksa Kode Sekolah & NISN Anda!";
+        if (!db) {
+            errorMsg.innerText = "Database belum terhubung. Konfigurasikan Supabase URL & Key pada kode HTML!";
             errorMsg.style.display = 'block';
-            resultCard.style.display = 'none';
-        } else {
-            errorMsg.style.display = 'none';
-            document.getElementById('resSekolah').innerText = data.nama_sekolah || schoolCode;
-            document.getElementById('resNama').innerText = data.nama_siswa;
-            document.getElementById('resNisn').innerText = data.nisn;
-
-            const scoresGrid = document.getElementById('scoresGrid');
-            scoresGrid.innerHTML = '';
-            
-            const scores = typeof data.nilai === 'string' ? JSON.parse(data.nilai) : data.nilai;
-            Object.keys(scores).forEach(mapel => {
-                const item = document.createElement('div');
-                item.className = 'score-item';
-                item.innerHTML = `<span>${mapel}</span><strong>${scores[mapel]}</strong>`;
-                scoresGrid.appendChild(item);
-            });
-
-            resultCard.style.display = 'block';
+            return;
         }
-    }
 
-    // Modal Handlers
-    function openAuthModal() { document.getElementById('authModal').style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        try {
+            const { data, error } = await db
+                .from('nilai_siswa')
+                .select('*')
+                .eq('kode_sekolah', schoolCode)
+                .eq('nisn', nisn)
+                .maybeSingle();
 
-    // Login Guru (Registrasi Otomatis jika Kode Sekolah Baru)
-    async function loginGuru() {
-        const code = document.getElementById('authSchoolCode').value.trim().toUpperCase();
-        const pass = document.getElementById('authPassword').value.trim();
-        const err = document.getElementById('authError');
-
-        if(!code || !pass) { err.innerText="Isi semua bidang!"; err.style.display='block'; return; }
-
-        let { data: school } = await db.from('sekolah').select('*').eq('kode_sekolah', code).single();
-
-        if(!school) {
-            // Registrasi sekolah baru secara mandiri
-            await db.from('sekolah').insert([{ kode_sekolah: code, password: pass }]);
-            activeSchool = code;
-            openAdminPanel();
-        } else if(school.password === pass) {
-            activeSchool = code;
-            openAdminPanel();
-        } else {
-            err.innerText = "Password Salah!";
-            err.style.display = 'block';
-        }
-    }
-
-    function openAdminPanel() {
-        closeModal('authModal');
-        document.getElementById('activeSchoolInfo').innerText = "Sekolah Terhubung: " + activeSchool;
-        document.getElementById('adminModal').style.display = 'flex';
-    }
-
-    // Sync Excel ke Supabase Database Online
-    async function uploadExcelToCloud() {
-        const file = document.getElementById('inputExcelFile').files[0];
-        if(!file) { alert("Pilih file excel!"); return; }
-
-        const reader = new FileReader();
-        reader.onload = async function(e) {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, {type: 'array'});
-            const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-
-            // Hapus data lama sekolah ini
-            await db.from('nilai_siswa').delete().eq('kode_sekolah', activeSchool);
-
-            // Format data baru
-            const rows = jsonData.map(row => {
-                const nisn = String(row['NISN'] || row['nisn'] || '').trim();
-                const nama = row['NAMA SISWA'] || row['nama'] || '-';
-                delete row['NISN']; delete row['NAMA SISWA'];
-                return {
-                    kode_sekolah: activeSchool,
-                    nisn: nisn,
-                    nama_siswa: nama,
-                    nilai: row
-                };
-            });
-
-            // Upload ke Cloud
-            const { error } = await db.from('nilai_siswa').insert(rows);
-            if(!error) {
-                alert("Data berhasil tersimpan ke Cloud! Siswa sekarang bisa mengecek nilai dari HP masing-masing.");
-                closeModal('adminModal');
+            if (error || !data) {
+                errorMsg.innerText = "Data tidak ditemukan. Periksa kembali Kode Sekolah & NISN Anda!";
+                errorMsg.style.display = 'block';
+                resultCard.style.display = 'none';
             } else {
-                alert("Gagal mengunggah data: " + error.message);
+                errorMsg.style.display = 'none';
+                document.getElementById('resSekolah').innerText = data.kode_sekolah;
+                document.getElementById('resNama').innerText = data.nama_siswa;
+                document.getElementById('resNisn').innerText = data.nisn;
+
+                const scoresGrid = document.getElementById('scoresGrid');
+                scoresGrid.innerHTML = '';
+                
+                const scores = typeof data.nilai === 'string' ? JSON.parse(data.nilai) : data.nilai;
+                Object.keys(scores).forEach(mapel => {
+                    const item = document.createElement('div');
+                    item.className = 'score-item';
+                    item.innerHTML = `<span>${mapel}</span><strong>${scores[mapel] !== undefined ? scores[mapel] : '-'}</strong>`;
+                    scoresGrid.appendChild(item);
+                });
+
+                resultCard.style.display = 'block';
             }
-        };
-        reader.readAsArrayBuffer(file);
+        } catch (e) {
+            errorMsg.innerText = "Terjadi kesalahan saat mengambil data: " + e.message;
+            errorMsg.style.display = 'block';
+        }
     }
 </script>
+
 </body>
 </html>
